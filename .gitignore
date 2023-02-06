@@ -100,4 +100,4 @@ go.work
 .env
 
 # Contracts ABI
-contracts_abi/
+artifacts/
