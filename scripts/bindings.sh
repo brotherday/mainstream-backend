@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 #
 # author:       Steve Huguenin-Elie <steve@brotherday.one>
 # description:  Generate go bindings from Solidity ABI and JSON files
@@ -9,7 +9,7 @@
 #
 
 cd "$(dirname $0)"
-cd ../contracts_abi
+cd ../artifacts
 
 for filename in `find -type f`; do
         # preprocesing
@@ -21,8 +21,8 @@ for filename in `find -type f`; do
         file=${file%.$suffix}
         path=${filename%/$file.$suffix}
 
-        if [ "$suffix" == json ] || [ "$suffix" == abi ]; then
-                rm ../client/${path}/${file,,}.go
+        if [ "$suffix" == abi ]; then
+                test -f ../client/${path}/${file,,}.go && rm ../client/${path}/${file,,}.go
                 mkdir -p ../client/${path}
                 touch ../client/${path}/${file,,}.go
                 if [ "$suffix" == json ]; then
@@ -30,7 +30,7 @@ for filename in `find -type f`; do
                 else
                         abigen --abi "${path:-.}/${file}.abi" --pkg client --type ${file^} --out "../client/"${path}"/${file,,}.go"
                 fi
-                echo "Added binding $(realpath ../client/'${path}'/${file,,}.go)."
+                echo "Added binding $(realpath ../client/${path}/${file,,}.go)."
         fi
 done
 
