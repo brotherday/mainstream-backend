@@ -21,26 +21,26 @@ func main() {
 	fmt.Println("Start OrbitDB connection...")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	fmt.Println("Start IPFS connection...")
-	ipfs, err := httpapi.NewLocalApi()
-	if err != nil {
-		log.Fatalln("Connection error:", err)
-	}
-	var newOrbitDBOptions *orbitdb.NewOrbitDBOptions
-	fmt.Println("Start OrbitDB connection...")
-	orbit, err := orbitdb.NewOrbitDB(ctx, ipfs, newOrbitDBOptions)
-	if err != nil {
-		log.Fatalln("Database error:", err)
-	}
 	var orbitdbName = os.Getenv("ORBITDB_NAME")
 	var DBName = fmt.Sprint("test.", strings.ToLower(orbitdbName))
 	var dbOptions = &orbitdb.CreateDBOptions{
 		LocalOnly: boolPtr(true),
 		Replicate: boolPtr(false),
 	}
+	var orbit iface.OrbitDB
 	fmt.Println("Create Orbit DB instance...")
-
 	db := comment.Must(comment.NewCommentStore(ctx, DBName, dbOptions, func(ctx context.Context, name string, dbOptions *orbitdb.CreateDBOptions) (comment.CommentStore, error) {
+		fmt.Println("Start IPFS connection...")
+		ipfs, err := httpapi.NewLocalApi()
+		if err != nil {
+			log.Fatalln("Connection error:", err)
+		}
+		var newOrbitDBOptions *orbitdb.NewOrbitDBOptions
+		fmt.Println("Start OrbitDB connection...")
+		orbit, err = orbitdb.NewOrbitDB(ctx, ipfs, newOrbitDBOptions)
+		if err != nil {
+			log.Fatalln("Database error:", err)
+		}
 		return orbit.Docs(ctx, name, dbOptions)
 	}))
 	comment := comment.NewComment(0, []byte(strconv.Itoa(257)), []byte(strconv.Itoa(32)), nil, time.Now(), "Hey! This is my first comment.")
