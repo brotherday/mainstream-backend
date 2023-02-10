@@ -16,6 +16,21 @@ import (
 	godotenv "github.com/joho/godotenv"
 )
 
+func createStoreInstance(ctx context.Context, name string, dbOptions *orbitdb.CreateDBOptions) (comment.CommentStore, error) {
+	fmt.Println("Start IPFS connection...")
+	ipfs, err := httpapi.NewLocalApi()
+	if err != nil {
+		log.Fatalln("Connection error:", err)
+	}
+	var newOrbitDBOptions *orbitdb.NewOrbitDBOptions
+	fmt.Println("Start OrbitDB connection...")
+	orbit, err := orbitdb.NewOrbitDB(ctx, ipfs, newOrbitDBOptions)
+	if err != nil {
+		log.Fatalln("Database error:", err)
+	}
+	return orbit.Docs(ctx, name, dbOptions)
+}
+
 func main() {
 	godotenv.Load()
 	fmt.Println("Start OrbitDB connection...")
@@ -27,22 +42,8 @@ func main() {
 		LocalOnly: boolPtr(true),
 		Replicate: boolPtr(false),
 	}
-	var orbit iface.OrbitDB
 	fmt.Println("Create Orbit DB instance...")
-	db := comment.Must(comment.NewCommentStore(ctx, DBName, dbOptions, func(ctx context.Context, name string, dbOptions *orbitdb.CreateDBOptions) (comment.CommentStore, error) {
-		fmt.Println("Start IPFS connection...")
-		ipfs, err := httpapi.NewLocalApi()
-		if err != nil {
-			log.Fatalln("Connection error:", err)
-		}
-		var newOrbitDBOptions *orbitdb.NewOrbitDBOptions
-		fmt.Println("Start OrbitDB connection...")
-		orbit, err = orbitdb.NewOrbitDB(ctx, ipfs, newOrbitDBOptions)
-		if err != nil {
-			log.Fatalln("Database error:", err)
-		}
-		return orbit.Docs(ctx, name, dbOptions)
-	}))
+	db := comment.Must(comment.NewCommentStore(ctx, DBName, dbOptions, createStoreInstance))
 	comment := comment.NewComment(0, []byte(strconv.Itoa(257)), []byte(strconv.Itoa(32)), nil, time.Now(), "Hey! This is my first comment.")
 	id := comment.Id.String()
 	document := map[string]any{"example": comment, "_id": id}
@@ -70,8 +71,6 @@ func main() {
 	fmt.Println(op.Marshal()) // same as op.GetValue()
 	db.Close()
 	fmt.Println("Store closed.")
-	orbit.Close()
-	fmt.Println("OrbitDB closed.")
 }
 
 func boolPtr(b bool) *bool {
