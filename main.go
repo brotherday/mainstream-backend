@@ -20,13 +20,13 @@ func createStoreInstance(ctx context.Context, name string, dbOptions *orbitdb.Cr
 	fmt.Println("Start IPFS connection...")
 	ipfs, err := httpapi.NewLocalApi()
 	if err != nil {
-		log.Fatalln("Connection error:", err)
+		return nil, err
 	}
 	var newOrbitDBOptions *orbitdb.NewOrbitDBOptions
 	fmt.Println("Start OrbitDB connection...")
 	orbit, err := orbitdb.NewOrbitDB(ctx, ipfs, newOrbitDBOptions)
 	if err != nil {
-		log.Fatalln("Database error:", err)
+		return nil, err
 	}
 	return orbit.Docs(ctx, name, dbOptions)
 }
