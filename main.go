@@ -9,44 +9,26 @@ import (
 	"strings"
 	"time"
 
-	orbitdb "berty.tech/go-orbit-db"
-	"berty.tech/go-orbit-db/iface"
-	"github.com/brotherday/mainstream/backend/comment"
-	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/brotherday/mainstream/backend/orbit"
 	godotenv "github.com/joho/godotenv"
 )
-
-func createStoreInstance(ctx context.Context, name string, dbOptions *orbitdb.CreateDBOptions) (comment.CommentStore, error) {
-	fmt.Println("Start IPFS connection...")
-	ipfs, err := httpapi.NewLocalApi()
-	if err != nil {
-		return nil, err
-	}
-	var newOrbitDBOptions *orbitdb.NewOrbitDBOptions
-	fmt.Println("Start OrbitDB connection...")
-	orbit, err := orbitdb.NewOrbitDB(ctx, ipfs, newOrbitDBOptions)
-	if err != nil {
-		return nil, err
-	}
-	return orbit.Docs(ctx, name, dbOptions)
-}
 
 func main() {
 	godotenv.Load()
 	fmt.Println("Start OrbitDB connection...")
+	orbitdbName := os.Getenv("ORBITDB_NAME")
+	DBName := fmt.Sprint("test.", strings.ToLower(orbitdbName))
+	fmt.Println("Create Orbit DB instance...")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	var orbitdbName = os.Getenv("ORBITDB_NAME")
-	var DBName = fmt.Sprint("test.", strings.ToLower(orbitdbName))
-	var dbOptions = &orbitdb.CreateDBOptions{
-		LocalOnly: boolPtr(true),
-		Replicate: boolPtr(false),
-	}
-	fmt.Println("Create Orbit DB instance...")
-	db := comment.Must(comment.NewCommentStore(ctx, DBName, dbOptions, createStoreInstance))
-	comment := comment.NewComment(0, []byte(strconv.Itoa(257)), []byte(strconv.Itoa(32)), nil, time.Now(), "Hey! This is my first comment.")
+	orbitdb := orbit.Must(orbit.NewLocalController(ctx, DBName, orbit.DocumentStore, orbit.DefaultCreateDBOptions(), nil))
+	comment := orbit.NewComment(0, []byte(strconv.Itoa(257)), []byte(strconv.Itoa(32)), nil, time.Now(), "Hey! This is my first comment.")
 	id := comment.Id.String()
-	document := map[string]any{"example": comment, "_id": id}
+	document := map[string]any{id: comment, "_id": id}
+	db, err := orbitdb.DocumentStore()
+	if err != nil {
+		log.Fatalln("orbitdb.DocumentStore()", err)
+	}
 	op, err := db.Put(ctx, document)
 	if err != nil {
 		log.Fatalln("Put error:", err)
@@ -54,11 +36,7 @@ func main() {
 	fmt.Println("Key added.")
 	// same as id or fmt.Sprint(document["_id"])
 	key := *op.GetKey()
-	var opts = &iface.DocumentStoreGetOptions{
-		CaseInsensitive: false,
-		PartialMatches:  true,
-	}
-	val, err := db.Get(ctx, key, opts)
+	val, err := db.Get(ctx, key, orbit.CommentStoreGetOptions())
 	if err != nil {
 		log.Fatalln("Get error:", err)
 	}
@@ -68,11 +46,8 @@ func main() {
 		log.Fatalln("Delete error:", err)
 	}
 	fmt.Print("Key deleted: ")
-	fmt.Println(op.Marshal()) // same as op.GetValue()
+	// same as op.GetValue()
+	fmt.Println(op.Marshal())
 	db.Close()
 	fmt.Println("Store closed.")
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }
