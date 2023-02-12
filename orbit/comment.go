@@ -9,15 +9,15 @@ import (
 )
 
 type Comment struct {
-	Id           *big.Int
-	Presentation common.Address
-	Owner        common.Address
-	PrevComment  *big.Int
-	Datetime     time.Time
-	Content      string
+	Id           *big.Int       `json:"id"`
+	Presentation common.Address `json:"presentation"`
+	Owner        common.Address `json:"owner"`
+	PrevComment  *big.Int       `json:"prev_comment"`
+	Datetime     time.Time      `json:"datetime"`
+	Content      string         `json:"content"`
 }
 
-func NewComment(id uint64, presentation []byte, owner []byte, prevComment *uint64, datetime time.Time, content string) *Comment {
+func NewComment(id uint64, presentation, owner []byte, prevComment *uint64, datetime time.Time, content string) *Comment {
 	var prevId *big.Int
 	if prevComment != nil {
 		prevId = big.NewInt(int64(*prevComment))
