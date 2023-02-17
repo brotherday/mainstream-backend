@@ -14,7 +14,7 @@ type Comment struct {
 	Body string `json:"body"`
 }
 
-func main() {
+func route() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

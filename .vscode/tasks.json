@@ -1,0 +1,36 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "go:run",
+      "type": "process",
+      "command": "go",
+      "args": ["run", "."],
+      "problemMatcher": ["$go"]
+    },
+    {
+      "label": "go:build",
+      "type": "process",
+      "group": "build",
+      "command": "go",
+      "args": ["build"],
+      "problemMatcher": ["$go"]
+    },
+    {
+      "label": "go:tidy",
+      "type": "process",
+      "command": "go",
+      "args": ["mod", "tidy"],
+      "problemMatcher": ["$go"]
+    },
+    {
+      "label": "go:download",
+      "type": "process",
+      "command": "go",
+      "args": ["mod", "download"],
+      "problemMatcher": ["$go"]
+    }
+  ]
+}
