@@ -1,4 +1,4 @@
-package orbit
+package db
 
 const (
 	version = "Development"

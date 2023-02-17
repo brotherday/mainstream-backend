@@ -3,7 +3,7 @@
  * SPDX License:  AGPL-3.0
  * Description:   This controller is based on [go-orbit-db](berty.tech/go-orbit-db) to simplify working with OrbitDB.
  */
-package orbit
+package db
 
 import (
 	"context"

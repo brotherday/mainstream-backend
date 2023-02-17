@@ -1,4 +1,4 @@
-package orbit
+package db
 
 import (
 	"berty.tech/go-orbit-db/iface"
